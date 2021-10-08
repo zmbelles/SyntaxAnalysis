@@ -147,6 +147,8 @@ int SyntaxAnalyzer::vars(){
     int result = 0;  // 0 none found, 1 found, -1 error
     while (tokitr != tokens.end() && result == 0){
         if (*tokitr == "t_id"){
+            
+            //what is this doing?
             symboltable[*lexitr] = temp;
             tokitr++; lexitr++;
             if (tokitr != tokens.end() && *tokitr == "s_comma"){
@@ -234,7 +236,6 @@ bool SyntaxAnalyzer::ifstmt(){
     }
         
     return false;
-    // we will write this together in class
 }
 
 bool SyntaxAnalyzer::elsepart(){
@@ -249,12 +250,38 @@ bool SyntaxAnalyzer::elsepart(){
 }
 
 bool SyntaxAnalyzer::whilestmt(){
-    return true;
+    if(*tokitr == "s_lparen"){
+        tokitr++; lexitr++;
+        if(expr()){
+            if(*tokitr == "s_rparen"){
+                tokitr++; lexitr++;
+                if(*tokitr == "t_loop"){
+                    tokitr++; lexitr++;
+                    if(stmtlist()){
+                        if(tokitr == "t_end"){
+                            tokitr++; lexitr++;
+                            if(tokitr == "t_loop"){
+                                tokitr++; lexitr++;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
     // write this function
 }
 
 bool SyntaxAnalyzer::assignstmt(){
-    return true;
+    if(tokitr == "s_assign"){
+        tokitr++; lexitr++;
+        if(expr()){
+            return true;
+        }
+    }
+    return false;
     // write this function
 }
 bool SyntaxAnalyzer::inputstmt(){
@@ -272,7 +299,24 @@ bool SyntaxAnalyzer::inputstmt(){
 }
 
 bool SyntaxAnalyzer::outputstmt(){
-    return true;
+    
+    if(tokitr == "s_lparen"){
+        tokitr++; lexitr++;
+        if(expr()){
+            if(tokitr == "s_rparen"){
+                tokitr++; lexitr++;
+                return true;
+            }
+        }
+        else if(tokitr == "t_string"){
+            tokitr++; lexitr++;
+            if(tokitr == "s_rparen"){
+                tokitr++; lexitr++;
+                return true;
+            }
+        }
+    }
+    return false;
     // write this function
 }
 
@@ -293,7 +337,15 @@ bool SyntaxAnalyzer::expr(){
 }
 
 bool SyntaxAnalyzer::simpleexpr(){
-    return true;
+    if(term()){
+        if(arithop()){
+            return true;
+        }
+        else if(relop()){
+            return true;
+        }
+    }
+    return false;
     // write this function
 }
 
