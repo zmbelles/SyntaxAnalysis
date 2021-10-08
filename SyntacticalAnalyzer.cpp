@@ -209,7 +209,31 @@ int SyntaxAnalyzer::stmt(){
 }
 
 bool SyntaxAnalyzer::ifstmt(){
-    return true;
+    
+    if(*tokitr == "s_lparen"){
+        tokitr++; lexitr++;
+        if(expr()){
+            if(*tokitr == "s_rparen"){
+                tokitr ++; lexitr++;
+                if(*tokitr == "t_then"){
+                    tokitr++; lexitr++;
+                    if(stmtlist()){
+                        if(elsepart()){
+                            if(*tokitr == "t_end"){
+                                tokitr++; lexitr++;
+                                if(*tokitr == "t_if"){
+                                    tokitr++; lexitr++;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+        
+    return false;
     // we will write this together in class
 }
 
@@ -254,7 +278,7 @@ bool SyntaxAnalyzer::outputstmt(){
 
 bool SyntaxAnalyzer::expr(){
     if (simpleexpr()){
-        if (relop()){
+        if (logicop()){
             if (simpleexpr())
                 return true;
             else
