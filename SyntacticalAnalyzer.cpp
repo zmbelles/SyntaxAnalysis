@@ -130,7 +130,7 @@ bool SyntaxAnalyzer::vdec(){
             return true;
     }
 }
-
+ 
 int SyntaxAnalyzer::vars(){
     string temp;
     if (*tokitr == "t_integer"){
@@ -258,9 +258,9 @@ bool SyntaxAnalyzer::whilestmt(){
                 if(*tokitr == "t_loop"){
                     tokitr++; lexitr++;
                     if(stmtlist()){
-                        if(tokitr == "t_end"){
+                        if(*tokitr == "t_end"){
                             tokitr++; lexitr++;
-                            if(tokitr == "t_loop"){
+                            if(*tokitr == "t_loop"){
                                 tokitr++; lexitr++;
                                 return true;
                             }
@@ -275,7 +275,7 @@ bool SyntaxAnalyzer::whilestmt(){
 }
 
 bool SyntaxAnalyzer::assignstmt(){
-    if(tokitr == "s_assign"){
+    if(*tokitr == "s_assign"){
         tokitr++; lexitr++;
         if(expr()){
             return true;
@@ -300,17 +300,18 @@ bool SyntaxAnalyzer::inputstmt(){
 
 bool SyntaxAnalyzer::outputstmt(){
     
-    if(tokitr == "s_lparen"){
+    if(*tokitr == "s_lparen"){
         tokitr++; lexitr++;
         if(expr()){
-            if(tokitr == "s_rparen"){
+            if(*tokitr == "s_rparen"){
                 tokitr++; lexitr++;
                 return true;
+                
             }
         }
-        else if(tokitr == "t_string"){
+        else if(*tokitr == "t_string"){
             tokitr++; lexitr++;
-            if(tokitr == "s_rparen"){
+            if(*tokitr == "s_rparen"){
                 tokitr++; lexitr++;
                 return true;
             }
@@ -404,3 +405,4 @@ int main(){
     sa.parse();
     return 1;
 }
+
