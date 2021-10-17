@@ -58,7 +58,6 @@ SyntaxAnalyzer::SyntaxAnalyzer(istream& infile){
         pos = line.find(":");
         tok = line.substr(0, pos-1);
         lex = line.substr(pos+2, line.length());
-        cout << pos << " " << tok << " " << lex << endl;
         tokens.push_back(tok);
         lexemes.push_back(lex);
         getline(infile, line);
@@ -67,13 +66,19 @@ SyntaxAnalyzer::SyntaxAnalyzer(istream& infile){
     lexitr = lexemes.begin();
 }
 
+
+// post:
+//    users source code is entirely checked for syntactical errors
+
 bool SyntaxAnalyzer::parse(){
+    
     if (vdec()){
         if (tokitr!=tokens.end() && *tokitr == "t_begin"){
             tokitr++; lexitr++;
             if (tokitr!=tokens.end() && stmtlist()){
-                if (tokitr!=tokens.end() && tokitr!=tokens.end()){
-                    if (tokitr!=tokens.end() && *tokitr == "t_end"){
+                if (tokitr!=tokens.end()){
+                    cout << *tokitr << endl;
+                    if (*tokitr == "t_end"){
                         tokitr++; lexitr++;
                         if (tokitr==tokens.end()){
                             cout << "Valid source code file" << endl;
@@ -103,15 +108,15 @@ bool SyntaxAnalyzer::parse(){
         cout << "bad var list" << endl;
     }
     return false;
-
 }
-
+//post:
+//    source code is checked for variables
 bool SyntaxAnalyzer::vdec(){
 
-    if (tokitr!=tokens.end() && *tokitr != "t_var")
+    if (tokitr!=tokens.end() && *tokitr != "t_var"
+        && *tokitr != "t_integer" && *tokitr != "t_string")
         return true;
     else{
-        tokitr++; lexitr++;
 
         int result = 0;   // 0 none found, 1 found, -1 error
         result = vars();  // need at least one
@@ -143,9 +148,29 @@ int SyntaxAnalyzer::vars(){
     }
     else
         return 0;
-
+    
+    int tmp = 0;
+    while(tokitr != tokens.end() && tmp == 0){
+        if(*tokitr == "t_str"){
+            tokitr++; lexitr++;
+        }
+        if(*tokitr == "t_int"){
+            tokitr++; lexitr++;
+        }
+        if(*tokitr == "s_semi"){
+            tokitr++; lexitr++;
+        }
+        if(*tokitr != "t_string" && *tokitr != "t_integer"){
+            tmp=1;
+        }
+        else{
+            tokitr++; lexitr++;
+        }
+    }
     int result = 0;  // 0 none found, 1 found, -1 error
+    cout << *tokitr << " ";
     while (tokitr != tokens.end() && result == 0){
+        cout << *tokitr << " ";
         if (tokitr!=tokens.end() && *tokitr == "t_id"){
             
             //what is this doing?
@@ -165,7 +190,6 @@ int SyntaxAnalyzer::vars(){
             result = -1;
         }
     }
-    cout << "result " << result << endl;
     return result;
 }
 
@@ -296,6 +320,7 @@ bool SyntaxAnalyzer::inputstmt(){
         }
     }
     return false;
+    
 }
 
 bool SyntaxAnalyzer::outputstmt(){
@@ -407,7 +432,7 @@ bool SyntaxAnalyzer::relop(){
 
 
 int main(){
-    ifstream infile("lexemes.txt");
+    ifstream infile("OutputFile.txt");
     SyntaxAnalyzer sa(infile);
     sa.parse();
     return 1;
