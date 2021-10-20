@@ -186,6 +186,8 @@ bool SyntaxAnalyzer::stmtlist(){
     else
         return true; //can be the empty set
 }
+
+//post: good, bad, or null statement are passed back
 int SyntaxAnalyzer::stmt(){
     if (tokitr!=tokens.end() && *tokitr == "t_if"){
         tokitr++; lexitr++;
