@@ -66,40 +66,37 @@ SyntaxAnalyzer::SyntaxAnalyzer(istream& infile){
     lexitr = lexemes.begin();
 }
 
-
 // post:
 //    users source code is entirely checked for syntactical errors
-
 bool SyntaxAnalyzer::parse(){
     
     if (vdec()){
         if (tokitr!=tokens.end() && *tokitr == "t_begin"){
             tokitr++; lexitr++;
-            if (tokitr!=tokens.end() && stmtlist()){
-                if (tokitr!=tokens.end()){
-                    cout << *tokitr << endl;
-                    if (*tokitr == "t_end"){
-                        tokitr++; lexitr++;
-                        if (tokitr==tokens.end()){
-                            cout << "Valid source code file" << endl;
-                            return true;
+                if (tokitr!=tokens.end() && stmtlist()){
+                    if (tokitr!=tokens.end()){
+                        if (*tokitr == "t_end"){
+                            tokitr++; lexitr++;
+                            if (tokitr==tokens.end()){
+                                cout << "Valid source code file" << endl;
+                                return true;
+                            }
+                            else{
+                                cout << "end came too early" << endl;
+                            }
                         }
                         else{
-                            cout << "end came too early" << endl;
+                            cout << "invalid statement ending code" << endl;
                         }
                     }
                     else{
-                        cout << "invalid statement ending code" << endl;
+                        cout << "no end" << endl;
                     }
                 }
                 else{
-                    cout << "no end" << endl;
+                    cout << "bad/no stmtlist or no end" << endl;
                 }
             }
-            else{
-                cout << "bad/no stmtlist or no end" << endl;
-            }
-        }
         else{
             cout << "no begin" << endl;
         }
@@ -135,64 +132,50 @@ bool SyntaxAnalyzer::vdec(){
             return true;
     }
 }
-
+/*
+ post:
+ source code is checked for valid variable declarations
+ */
 int SyntaxAnalyzer::vars(){
-    string temp;
-    if (tokitr!=tokens.end() && *tokitr == "t_integer"){
-        temp = "t_integer";
-        tokitr++; lexitr++;
-    }
-    else if (tokitr!=tokens.end() && *tokitr == "t_string"){
-        temp = "t_string";
-        tokitr++; lexitr++;
-    }
-    else
-        return 0;
     
-    int tmp = 0;
-    while(tokitr != tokens.end() && tmp == 0){
-        if(*tokitr == "t_str"){
+    string temp;
+        if (*tokitr == "t_integer"){
+            temp = "t_integer";
             tokitr++; lexitr++;
         }
-        if(*tokitr == "t_int"){
+        else if (*tokitr == "t_string"){
+            temp = "t_string";
             tokitr++; lexitr++;
         }
-        if(*tokitr == "s_semi"){
-            tokitr++; lexitr++;
-        }
-        if(*tokitr != "t_string" && *tokitr != "t_integer"){
-            tmp=1;
-        }
-        else{
-            tokitr++; lexitr++;
-        }
-    }
-    int result = 0;  // 0 none found, 1 found, -1 error
-    cout << *tokitr << " ";
-    while (tokitr != tokens.end() && result == 0){
-        cout << *tokitr << " ";
-        if (tokitr!=tokens.end() && *tokitr == "t_id"){
-            
-            //what is this doing?
-            symboltable[*lexitr] = temp;
-            tokitr++; lexitr++;
-            if (tokitr != tokens.end() && *tokitr == "s_comma"){
-                tokitr++; lexitr++;
-            }
-            else if (tokitr != tokens.end() && *tokitr == "s_semi"){
-                result = 1;
-                tokitr++; lexitr++;
-            }
-            else
-                result = -1;
-        }
-        else{
-            result = -1;
-        }
-    }
-    return result;
-}
+        else
+            return 0;
 
+        int result = 0;  // 0 none found, 1 found, -1 error
+        while (tokitr != tokens.end() && result == 0){
+            if (*tokitr == "t_id" || *tokitr == "t_str"){
+                symboltable[*lexitr] = temp;
+                tokitr++; lexitr++;
+                if (tokitr != tokens.end() && *tokitr == "s_comma"){
+                    tokitr++; lexitr++;
+                }
+                else if (tokitr != tokens.end() && *tokitr == "s_semi"){
+                    result = 1;
+                    tokitr++; lexitr++;
+                }
+                else
+                    result = -1;
+            }
+            else{
+                result = -1;
+            }
+        }
+    return result;
+    }
+
+/*
+ post:
+    source code is checked for valid statements
+ */
 bool SyntaxAnalyzer::stmtlist(){
     int result = stmt();
     while (result == 1){
@@ -201,7 +184,7 @@ bool SyntaxAnalyzer::stmtlist(){
     if (result == 0)
         return false;
     else
-        return true;
+        return true; //can be the empty set
 }
 int SyntaxAnalyzer::stmt(){
     if (tokitr!=tokens.end() && *tokitr == "t_if"){
@@ -216,7 +199,6 @@ int SyntaxAnalyzer::stmt(){
     }
     else if (tokitr!=tokens.end() && *tokitr == "t_id"){  // assignment starts with identifier
         tokitr++; lexitr++;
-        cout << "t_id" << endl;
         if (assignstmt()) return 1;
         else return 0;
     }
@@ -227,13 +209,16 @@ int SyntaxAnalyzer::stmt(){
     }
     else if (tokitr!=tokens.end() && *tokitr == "t_output"){
         tokitr++; lexitr++;
-        cout << "t_output" << endl;
         if (outputstmt()) return 1;
         else return 0;
     }
     return 2;  //stmtlist can be null
 }
 
+/*
+ post:
+    if statement of source code is checked for validity
+ */
 bool SyntaxAnalyzer::ifstmt(){
     
     if(tokitr!=tokens.end() && *tokitr == "s_lparen"){
@@ -261,7 +246,10 @@ bool SyntaxAnalyzer::ifstmt(){
         
     return false;
 }
-
+/*
+ post:
+    else statement of source code is checked for validity
+ */
 bool SyntaxAnalyzer::elsepart(){
     if (tokitr!=tokens.end() && *tokitr == "t_else"){
         tokitr++; lexitr++;
@@ -272,7 +260,10 @@ bool SyntaxAnalyzer::elsepart(){
     }
     return true;   // elsepart can be null
 }
-
+/*
+ post:
+    while statement of source code is checked for validity
+ */
 bool SyntaxAnalyzer::whilestmt(){
     if(tokitr!=tokens.end() && *tokitr == "s_lparen"){
         tokitr++; lexitr++;
@@ -297,24 +288,35 @@ bool SyntaxAnalyzer::whilestmt(){
     return false;
     // write this function
 }
-
+/*
+ post:
+    statement is checked for assignment operator
+ */
 bool SyntaxAnalyzer::assignstmt(){
     if(tokitr!=tokens.end() && *tokitr == "s_assign"){
         tokitr++; lexitr++;
         if(expr()){
             return true;
         }
+        else if(tokitr!=tokens.end() && *tokitr == "s_semi"){
+            tokitr ++; lexitr++;
+            return true;
+        }
     }
     return false;
     // write this function
 }
+/*
+ post:
+    input statement of source code is checked for validity
+ */
 bool SyntaxAnalyzer::inputstmt(){
     if (tokitr!=tokens.end() && *tokitr == "s_lparen"){
         tokitr++; lexitr++;
         if (tokitr!=tokens.end() && *tokitr == "t_id"){
             tokitr++; lexitr++;
-            if (tokitr!=tokens.end() && *tokitr == "s_rparen"){
-                tokitr++; lexitr++;
+            if (tokitr!=tokens.end() && *tokitr == "s_rparen"){\
+                tokitr++; lexitr++;\
                 return true;
             }
         }
@@ -323,6 +325,10 @@ bool SyntaxAnalyzer::inputstmt(){
     
 }
 
+/*
+ post:
+    output statement of source code is checked for validity
+ */
 bool SyntaxAnalyzer::outputstmt(){
     
     if(tokitr!=tokens.end() && *tokitr == "s_lparen"){
@@ -335,21 +341,29 @@ bool SyntaxAnalyzer::outputstmt(){
         }
         else if(tokitr!=tokens.end() && *tokitr == "t_string"){
             tokitr++; lexitr++;
-            if(tokitr!=tokens.end() && *tokitr == "s_rparen"){
-                tokitr++; lexitr++;
-                return true;
-            }
+        }
+        else if(tokitr!=tokens.end() && *tokitr == "t_id"){
+            tokitr++; lexitr++;
+        }
+        if(tokitr!=tokens.end() && *tokitr == "s_rparen"){
+            tokitr++; lexitr++;
+            return true;
         }
     }
     return false;
     // write this function
 }
 
+/*
+ post:
+    source code is checked for valid expression
+ */
 bool SyntaxAnalyzer::expr(){
     if (simpleexpr()){
         if (logicop()){
-            if (simpleexpr())
+            if (simpleexpr()){
                 return true;
+            }
             else
                 return false;
         }
@@ -360,20 +374,27 @@ bool SyntaxAnalyzer::expr(){
         return false;
     }
 }
-
+/*
+ post:
+    the validity of a simple expression is returned
+ */
 bool SyntaxAnalyzer::simpleexpr(){
     if(term()){
         if(arithop()){
+            if(term())
             return true;
         }
         else if(relop()){
-            return true;
+            if(term())
+                return true;
         }
     }
     return false;
-    // write this function
 }
 
+/*
+ the validity of a term is returned
+ */
 bool SyntaxAnalyzer::term(){
     if ((tokitr!=tokens.end() && *tokitr == "t_int")
     ||  (tokitr!=tokens.end() && *tokitr == "t_str")
@@ -393,6 +414,9 @@ bool SyntaxAnalyzer::term(){
     return false;
 }
 
+/*
+ returned if the dereferenced token iterator is pointing to a logical operator
+ */
 bool SyntaxAnalyzer::logicop(){
     if    ((tokitr!=tokens.end() && *tokitr == "s_and")
         || (tokitr!=tokens.end() && *tokitr == "s_or")){
@@ -402,7 +426,9 @@ bool SyntaxAnalyzer::logicop(){
     else
         return false;
 }
-
+/*
+ returned if the dereferenced token iterator is pointing to a arithmatic operator
+ */
 bool SyntaxAnalyzer::arithop(){
     if    ((tokitr!=tokens.end() && *tokitr == "s_mult")
         || (tokitr!=tokens.end() && *tokitr == "s_plus")
@@ -415,7 +441,9 @@ bool SyntaxAnalyzer::arithop(){
     else
         return false;
 }
-
+/*
+ returns true if the dereferenced token iterator is pointing to a relational operator
+ */
 bool SyntaxAnalyzer::relop(){
     if    ((tokitr!=tokens.end() && *tokitr == "s_lt")
         || (tokitr!=tokens.end() && *tokitr == "s_gt")
